@@ -8,7 +8,6 @@ This guide gives you copy‑paste commands for Windows, macOS, and Linux to inst
 
 * **Python** 3.8+ (`python --version`)
 * **Google Chrome or Chromium** installed and runnable on your machine
-* Network access to the domains in `ALLOWED_DOMAINS` (default allows YouTube and Google sign‑in)
 
 > The script can auto‑attach to an existing Chrome **CDP** session or auto‑launch its own.
 
@@ -159,4 +158,5 @@ python -m pip install -U pip setuptools wheel; \
 pip install browser-use python-dotenv psutil playwright openai google-generativeai; \
 python -m playwright install
 ```
+
 
