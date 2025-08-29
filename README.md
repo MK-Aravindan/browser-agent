@@ -67,52 +67,7 @@ sudo apt-get update && sudo apt-get install -y \
 
 ---
 
-## 4) Configure API keys (choose one provider)
-
-### OpenAI
-
-**Windows (PowerShell):**
-
-```powershell
-$env:OPENAI_API_KEY="YOUR_OPENAI_KEY"
-# Optional aliases
-$env:OPENAI_KEY=$env:OPENAI_API_KEY
-```
-
-**macOS / Linux:**
-
-```bash
-export OPENAI_API_KEY="YOUR_OPENAI_KEY"
-# Optional alias
-export OPENAI_KEY="$OPENAI_API_KEY"
-```
-
-### Google Gemini
-
-**Windows (PowerShell):**
-
-```powershell
-$env:GOOGLE_API_KEY="YOUR_GEMINI_KEY"
-# Optional alias
-$env:GEMINI_API_KEY=$env:GOOGLE_API_KEY
-```
-
-**macOS / Linux:**
-
-```bash
-export GOOGLE_API_KEY="YOUR_GEMINI_KEY"
-# Optional alias
-export GEMINI_API_KEY="$GOOGLE_API_KEY"
-```
-
-**Optional overrides:**
-
-```bash
-# Choose provider explicitly: openai | gemini
-export PROVIDER="openai"
-# Force a model name (otherwise sensible defaults are used)
-export MODEL="gpt-4.1-mini"
-```
+## 4) Configure API keys
 
 **.env option** (loaded automatically if present):
 
@@ -204,3 +159,4 @@ python -m pip install -U pip setuptools wheel; \
 pip install browser-use python-dotenv psutil playwright openai google-generativeai; \
 python -m playwright install
 ```
+
