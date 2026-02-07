@@ -1,162 +1,133 @@
-# Browser Agent – Setup & Run Guide
+# Browser Agent (browser-use 0.7.0)
 
-This guide gives you copy‑paste commands for Windows, macOS, and Linux to install dependencies (including Playwright), set API keys, and run `main.py`.
+This project is a rebuilt `browser-use` runner with:
 
----
+- clean modular structure
+- explicit provider/model configuration
+- optional CDP auto-attach
+- explicit browser launch modes (`own`, `fresh`, `managed`, `auto`)
+- tag-aware DOM handling (`include_attributes`)
+- step logging and performance-focused defaults
 
-## 1) Prerequisites
+## Project Layout
 
-* **Python** 3.8+ (`python --version`)
-* **Google Chrome or Chromium** installed and runnable on your machine
+- `main.py` - entrypoint
+- `browser_agent/config.py` - environment and runtime config
+- `browser_agent/llm_factory.py` - OpenAI/Gemini LLM creation
+- `browser_agent/browser_factory.py` - browser/CDP setup
+- `browser_agent/runner.py` - agent runtime and callbacks
+- `prompt.txt` - default task input
 
-> The script can auto‑attach to an existing Chrome **CDP** session or auto‑launch its own.
+## Prerequisites
 
----
+- Python 3.11+
+- Chrome/Chromium installed
 
-## 2) Create & activate a virtual environment
-
-**Windows (PowerShell/CMD):**
+## Install
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-```
-
-**macOS / Linux:**
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-> To exit later: `deactivate`
-
----
-
-## 3) Install Python packages (Playwright included)
-
-Upgrade tooling:
-
-```bash
-python -m pip install -U pip setuptools wheel
-```
-
-Install required libraries:
-
-```bash
-pip install browser-use python-dotenv psutil playwright openai google-generativeai
-```
-
-Install Playwright browsers (Chromium, WebKit, Firefox):
-
-```bash
+python -m pip install -U pip
+pip install -r requirements.txt
 python -m playwright install
 ```
 
-**Linux only – optional system deps** (helps with headless/graphics libs):
+On macOS/Linux, use `source .venv/bin/activate` instead of PowerShell activation.
 
-```bash
-# Option A: Let Playwright install common OS deps
-sudo python -m playwright install-deps
+## Environment Setup
 
-# Option B: Minimal libs via apt (Debian/Ubuntu)
-sudo apt-get update && sudo apt-get install -y \
-  libnss3 libatk-bridge2.0-0 libxkbcommon0 libgtk-3-0 libgbm1 libasound2
-```
+Create `.env` from `.env.example` and set at least one API key:
 
----
+- `OPENAI_API_KEY` for OpenAI
+- `GOOGLE_API_KEY` for Gemini
 
-## 4) Configure API keys
+Key runtime variables:
 
-**.env option** (loaded automatically if present):
+- `PROVIDER=auto|openai|gemini`
+- `MODEL` (optional override)
+- `OPENAI_MODEL`, `GEMINI_MODEL`
+- `ALLOWED_DOMAINS=example.com,docs.python.org`
+- `INCLUDE_ATTRIBUTES=id,name,role,type,aria-label,data-testid,href`
+- `MAX_STEPS=60`
+- `FLASH_MODE=true`
+- `CONNECT_EXISTING_CDP=true`
+- `CDP_PORT=9222`
+- `BROWSER_MODE=auto|own|fresh|managed`
+- `CHROME_EXECUTABLE_PATH` (optional)
+- `FRESH_CHROME_USER_DATA_DIR=.browser-agent/chrome-fresh-profile`
+- `ENABLE_DEFAULT_EXTENSIONS=false`
+- `KEEP_ALIVE=false`
 
-```
-OPENAI_API_KEY=...
-# or
-GOOGLE_API_KEY=...
-PROVIDER=openai # gemini | openai
-MODEL=gpt-5 
-# MODEL=gemini-2.5-flash
-```
+## Run
 
----
+Use task from `prompt.txt`:
 
-## 5) Provide your task
-
-Create `prompt.txt` next to `main.py` with a single line describing what to do:
-
-```
-Play "A. R. Rahman – Aalaporaan Thamizhan" on YouTube Music and like the track.
-```
-
----
-
-## 6) Run the agent
-
-```bash
+```powershell
 python main.py
 ```
 
-If Chrome CDP isn’t detected and auto‑launch fails, start Chrome manually then re‑run:
-
-**Windows (PowerShell):**
+Run with inline task:
 
 ```powershell
-start chrome --remote-debugging-port=9222 --user-data-dir="%LOCALAPPDATA%\ChromeCDP"
+python main.py --task "Search browser-use docs and summarize latest Agent params"
 ```
 
-**macOS:**
+Useful flags:
 
-```bash
-open -a "Google Chrome" --args --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-cdp"
-```
+- `--prompt-file path/to/task.txt`
+- `--max-steps 40`
+- `--headless` or `--show-browser`
+- `--no-cdp`
+- `--browser-mode auto|own|fresh|managed`
+- `--cdp-port 9222`
+- `--cdp-url http://127.0.0.1:9222`
+- `--chrome-path "C:\Program Files\Google\Chrome\Application\chrome.exe"`
 
-**Linux:**
+### Browser Modes
 
-```bash
-google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-cdp"
-```
+- `auto`: attach to existing CDP if available; otherwise launch a fresh dedicated Chrome.
+- `own`: require an already-running Chrome CDP session (your own browser).
+- `fresh`: always launch a separate Chrome instance with its own user-data dir.
+- `managed`: let `browser-use` launch internally (Playwright path).
 
-> To point at an existing CDP, set `CDP_PORT` (e.g., `export CDP_PORT=9222`).
-
----
-
-## 7) Quick checks if something fails
-
-* **Chrome not found** → ensure Chrome/Chromium is installed and on PATH
-* **CDP blocked** (corp devices) → manually launch Chrome with flags above
-* **Missing keys** → set one of: `OPENAI_API_KEY` or `GOOGLE_API_KEY`
-* **Linux graphics errors** → run the *Linux system deps* commands
-* **Domains restricted** → edit `ALLOWED_DOMAINS` in `main.py`
-
----
-
-## 8) Clean up
-
-```bash
-deactivate
-rm -rf .venv  # macOS/Linux
-# On Windows, just delete the .venv folder in Explorer
-```
-
----
-
-## Copy‑paste summary (macOS/Linux)
-
-```bash
-python3 -m venv .venv && source .venv/bin/activate \
-&& python -m pip install -U pip setuptools wheel \
-&& pip install browser-use python-dotenv psutil playwright openai google-generativeai \
-&& python -m playwright install
-```
-
-## Copy‑paste summary (Windows PowerShell)
+For `own`, start Chrome manually with CDP first:
 
 ```powershell
-python -m venv .venv; .\.venv\Scripts\Activate.ps1; \
-python -m pip install -U pip setuptools wheel; \
-pip install browser-use python-dotenv psutil playwright openai google-generativeai; \
-python -m playwright install
+& "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="$env:LOCALAPPDATA\ChromeCDP"
 ```
 
+## Tag and Element Handling
 
+The runner explicitly improves element targeting by:
+
+- passing `include_attributes` to the agent
+- extending system guidance to prefer tag-correct controls (button/input/select)
+- logging each step action (and optional tag summary with `LOG_DOM_TAG_SUMMARY=true`)
+
+This makes interactions more stable on pages with similar-looking controls.
+
+## Performance Tuning
+
+Defaults are tuned for speed while retaining reasoning quality:
+
+- `FLASH_MODE=true`
+- `MAX_ACTIONS_PER_STEP=6`
+- `MIN_PAGE_LOAD_WAIT=0.25`
+- `NETWORK_IDLE_WAIT=1.0`
+- `WAIT_BETWEEN_ACTIONS=0.15`
+
+If the site is flaky, increase the wait values.
+
+## Notes
+
+- Logs are written to `logs/browser_agent.log` by default.
+- Default extension auto-download is disabled to avoid slow startup timeouts.
+- Set `KEEP_ALIVE=true` only if you want the launched browser session to stay open after run.
+
+## References
+
+- browser-use docs: https://docs.browser-use.com
+- Browser parameters: https://docs.browser-use.com/customize/browser/all-parameters
+- Agent parameters: https://docs.browser-use.com/customize/agent/all-parameters
+- Supported models: https://docs.browser-use.com/customize/supported-models
